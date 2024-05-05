@@ -54,4 +54,69 @@ router.post(
   }
 );
 
+
+//Route 3: Update note using PUT "/api/notes/updatenote" .login required
+
+router.put(
+  "/updatenote/:id",
+  fetchuser,
+  async (req, res) => {
+    try {
+      //using destructuring to get data from the request
+      const { title, description, tag } = req.body;
+      //Create a newNote object
+      const newNote ={};
+      if(title){newNote.title = title}
+      if(description){newNote.description = description}
+      if(tag){newNote.tag = tag}
+      
+      //Find the note to be updated and update it
+      let note = await Note.findById(req.params.id);
+      if(!note){
+        return res.status(404).send("Not Found");
+      }
+      if(note.user.toString() !== req.user.id){
+        return res.status(401).send("Not Allowed");
+      }
+      //update that note
+      note = await Note.findByIdAndUpdate(req.params.id, {$set:newNote}, {new:true});
+      //return the note
+      res.json(note);
+    } catch (error) {
+      console.error(error.messae);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+
+//Route 3: Delete note using DELETE "/api/notes/deletenote" .login required
+
+router.delete(
+  "/deletenote/:id",
+  fetchuser,
+  async (req, res) => {
+    try {
+      //using destructuring to get data from the request
+      const { title, description, tag } = req.body;
+      
+      //Find the note to be updated and update it
+      let note = await Note.findById(req.params.id);
+      if(!note){
+        return res.status(404).send("Not Found");
+      }
+      if(note.user.toString() !== req.user.id){
+        return res.status(401).send("Not Allowed");
+      }
+      //update that note
+      note = await Note.findByIdAndDelete(req.params.id);
+      //return the note
+      res.json({"success":"Note deleted successfully", note: note});
+    } catch (error) {
+      console.error(error.messae);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
 module.exports = router;
